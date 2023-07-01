@@ -14,7 +14,6 @@ init -99999 python: # type: ignore
         from ... import renpy
 
     import re
-    import time
     try:
         from time import perf_counter
     except:
@@ -269,6 +268,85 @@ init -99999 python: # type: ignore
             lines.append("}")
             with open("path.dot", "w") as f:
                 f.write("\n".join(lines))
+        
+        def serialize(self):
+            # type: () -> str
+            import json
+
+            nodes = []
+            for node in self.nodes:
+                location = node.origin.filename + '#' + str(node.origin.linenumber)
+                parents = [self.edges.index(parent) for parent in node.parents]
+                children = [self.edges.index(child) for child in node.children]
+                callers = [self.nodes.index(caller) if caller is not None else caller for caller in node.callers]
+                data = {
+                    "location": location,
+                    "parents": parents,
+                    "children": children,
+                    "callers": callers
+                }
+                nodes.append(data)
+
+            edges = []
+            for edge in self.edges:
+                start = self.nodes.index(edge.start)
+                end = self.nodes.index(edge.end)
+                data = {
+                    "start": start,
+                    "condition": edge.condition,
+                    "choice": edge.choice,
+                    "end": end
+                }
+                edges.append(data)
+
+            serial = json.dumps({
+                "nodes": nodes,
+                "edges": edges
+            })
+            return serial
+        
+        @staticmethod
+        def deserialize(serial):
+            # type: (str) -> Graph
+            import json
+
+            data = json.loads(serial)
+            graph = Graph()
+
+            located = {} # type: Dict[str, renpy.ast.Node]
+            for raw_node in data["nodes"]:
+                located[raw_node["location"]] = None # type: ignore
+            for rpynode in renpy.game.script.all_stmts: # type: ignore
+                location = rpynode.filename + "#" + str(rpynode.linenumber)
+                if isinstance(rpynode, renpy.ast.Pass):
+                    continue
+                if location in located and located[location] is None:
+                    located[location] = rpynode
+
+            for raw_node in data["nodes"]:
+                rpynode = located[raw_node["location"]]
+                node = _new_node(graph, rpynode, [])
+                graph.add_node(node)
+            
+            for raw_edge in data["edges"]:
+                start = graph.nodes[raw_edge["start"]]
+                end = graph.nodes[raw_edge["end"]]
+                edge = Edge(start, end, raw_edge["condition"], raw_edge["choice"])
+                graph.add_edge(edge)
+            
+            for raw_node in data["nodes"]:
+                rpynode = located[raw_node["location"]]
+                node = graph.get_node(rpynode)
+                if node is None:
+                    continue
+                for i in raw_node["parents"]:
+                    parent = graph.edges[i]
+                    node.parents.append(parent)
+                for i in raw_node["children"]:
+                    child = graph.edges[i]
+                    node.children.append(child)
+
+            return graph
 
 
     class Label(Node):
@@ -669,9 +747,15 @@ init -99999 python: # type: ignore
         start_node = lookup_or_none("start")
         end_node = None
 
-        graph = timed("Generation", convert, start_node, end_node, _next__minimalist)
+        with open("graph.json", "r") as f:
+            serialized = f.read()
+        graph = timed("Deserialization", Graph.deserialize, serialized)
+        # graph = timed("Generation", convert, start_node, end_node, _next__minimalist)
         timed("Simplification", simplify, graph, simplify_menus=True)
         timed("Vizualization", Graph.vizualize, graph)
+        serialized = timed("Serialization", Graph.serialize, graph)
+        with open("graph.json", "w") as f:
+            f.write(serialized)
 
         renpy.quit() # type: ignore
 
