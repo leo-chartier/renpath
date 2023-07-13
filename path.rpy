@@ -278,7 +278,7 @@ init -99999 python: # type: ignore
                 location = node.origin.filename + '#' + str(node.origin.linenumber)
                 parents = [self.edges.index(parent) for parent in node.parents]
                 children = [self.edges.index(child) for child in node.children]
-                callers = [self.nodes.index(caller) if caller is not None else caller for caller in node.callers]
+                callers = [self.nodes.index(caller) if caller is not None else None for caller in node.callers if caller in self.nodes or caller is None]
                 data = {
                     "location": location,
                     "parents": parents,
@@ -742,21 +742,3 @@ init -99999 python: # type: ignore
             print("{} took {:06.3f}s".format(name, s))
         print("==========")
         return result
-
-    def main():
-        start_node = lookup_or_none("start")
-        end_node = None
-
-        with open("graph.json", "r") as f:
-            serialized = f.read()
-        graph = timed("Deserialization", Graph.deserialize, serialized)
-        # graph = timed("Generation", convert, start_node, end_node, _next__minimalist)
-        timed("Simplification", simplify, graph, simplify_menus=True)
-        timed("Vizualization", Graph.vizualize, graph)
-        serialized = timed("Serialization", Graph.serialize, graph)
-        with open("graph.json", "w") as f:
-            f.write(serialized)
-
-        renpy.quit() # type: ignore
-
-    main() # type: ignore

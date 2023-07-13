@@ -1,1 +1,8 @@
 .vscode/
+
+# Ignore test files except example
+tests/**/*
+!tests/ddlc.py
+!tests/ddlc.rpy
+!tests/README.md
+!tests/run_all.py
