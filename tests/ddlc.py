@@ -10,11 +10,11 @@ modspath = os.path.join(root, "game", "mods")
 packagepath = os.path.join(root, "game", "python-packages", "renpath")
 
 # Clean & copy everything
-if os.path.exists(os.path.join(modspath, "renpath")):
-    shutil.rmtree(os.path.join(modspath, "renpath"))
 if os.path.exists(packagepath):
     shutil.rmtree(packagepath)
-shutil.copytree("renpath", packagepath, dirs_exist_ok=True)
+shutil.copytree("renpath", packagepath)
+if not os.path.exists(modspath):
+    os.makedirs(modspath)
 shutil.copy(os.path.join("tests/" + modfile), os.path.join(modspath, "renpath.rpy"))
 
 # Run
