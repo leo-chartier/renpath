@@ -7,10 +7,16 @@ executable = "DDLC.exe"
 modfile = "ddlc.rpy"
 
 modspath = os.path.join(root, "game", "mods")
+packagepath = os.path.join(root, "game", "python-packages", "renpath")
 
-# Copy everything and run
-os.makedirs(modspath, exist_ok=True)
-shutil.copy("path.rpy", modspath)
-shutil.copy(os.path.join("tests/" + modfile), modspath)
+# Clean & copy everything
+if os.path.exists(os.path.join(modspath, "renpath")):
+    shutil.rmtree(os.path.join(modspath, "renpath"))
+if os.path.exists(packagepath):
+    shutil.rmtree(packagepath)
+shutil.copytree("renpath", packagepath, dirs_exist_ok=True)
+shutil.copy(os.path.join("tests/" + modfile), os.path.join(modspath, "renpath.rpy"))
+
+# Run
 os.chdir(root)
-os.system("start " + executable)
+os.system("start \"\" \"" + executable + "\"")
