@@ -29,6 +29,7 @@ NODES_MAPPING = {
     renpy.ast.Menu: Menu,
     renpy.ast.If: If,
     renpy.ast.Python: Python,
+    renpy.ast.UserStatement: UserStatement,
     # renpy.ast.Node: Node
 } # type: Dict[Type[renpy.ast.Node], Type[Node]]
 
@@ -51,6 +52,7 @@ def _next__normal(node, skip_first=True):
     if skip_first:
         node = node.next # type: ignore
     while isinstance(node, (
+        renpy.ast.Say,
         renpy.ast.Translate,
         renpy.ast.EndTranslate,
         renpy.ast.Pass,
@@ -73,18 +75,19 @@ def _next__minimalist(node, skip_first=True):
         renpy.ast.Menu,
         renpy.ast.If,
         renpy.ast.Python,
+        renpy.ast.UserStatement,
         type(None),
     )):
         node = node.next
     return node
 
-def _new_node(graph, rpynode, parents):
-    # type: (Graph, renpy.ast.Node, List[Edge]) -> Node
+def _new_node(graph, rpynode, parents, screens):
+    # type: (Graph, renpy.ast.Node, List[Edge], Dict[str, Screen]) -> Node
     for rpytype, nodetype in NODES_MAPPING.items():
         if isinstance(rpynode, rpytype):
             break
     else:
         nodetype = Node
-    node = nodetype(rpynode, parents, [])
+    node = nodetype(rpynode, parents, [], screens)
     graph.add_node(node)
     return node

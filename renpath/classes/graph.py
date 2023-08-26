@@ -97,7 +97,8 @@ class Graph:
                 "location": location,
                 "parents": parents,
                 "children": children,
-                "callers": callers
+                "callers": callers,
+                "screens": {} # TODO: Serialize screens
             }
             nodes.append(data)
 
@@ -140,7 +141,7 @@ class Graph:
 
         for raw_node in data["nodes"]:
             rpynode = located[raw_node["location"]]
-            node = _new_node(graph, rpynode, [])
+            node = _new_node(graph, rpynode, [], {}) # TODO: Deserialize screens
             graph.add_node(node)
         
         for raw_edge in data["edges"]:

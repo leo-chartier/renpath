@@ -1,5 +1,6 @@
 from renpath import renpy
-from ..typing import Iterator, List, Union
+from ..screens import Screen
+from ..typing import Dict, Iterator, List, Optional
 
 from .edge import Edge
 
@@ -13,12 +14,13 @@ def __mock_imports(): # type: ignore
 
 
 class Node(object):
-    def __init__(self, origin, parents, callers):
-        # type: (renpy.ast.Node, List[Edge], List[Union[Call, None]]) -> None
+    def __init__(self, origin, parents, callers, screens):
+        # type: (renpy.ast.Node, List[Edge], List[Optional[Call]], Dict[str, Screen]) -> None
         self.origin = origin
         self.parents = parents
         self.children = [] # type: List[Edge]
         self.callers = callers
+        self.screens = screens
 
     def generate_children(self, graph, next_getter):
         # type: (Graph, NextGetter) -> List[Edge]
@@ -29,7 +31,7 @@ class Node(object):
         next_ = next_getter(self.origin)
         if next_ is None:
             return []
-        child = graph.get_node(next_) or _new_node(graph, next_, [])
+        child = graph.get_node(next_) or _new_node(graph, next_, [], dict(self.screens))
         edge = Edge(self, child)
         edge = graph.get_edge(edge) or edge
         return [edge]

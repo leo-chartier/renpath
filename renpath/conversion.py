@@ -17,7 +17,7 @@ def convert(start_rpynode, end_rpynode, next_getter):
     # TODO: Stop at end_node
 
     graph = Graph()
-    start = _new_node(graph, start_rpynode, [])
+    start = _new_node(graph, start_rpynode, [], {})
     start.callers = [None] # type: ignore # Error on type for no reason, works if empty list and then append None
     todo = [start] # type: List[Node]
 
@@ -25,7 +25,7 @@ def convert(start_rpynode, end_rpynode, next_getter):
         node = todo.pop(0)
         if isinstance(node, renpy.ast.Node) and not graph.has_node(node):
             # Should not happen, just in case
-            node = _new_node(graph, node, [])
+            node = _new_node(graph, node, [], {})
 
         for edge in node.generate_children(graph, next_getter):
             child = edge.end
@@ -53,5 +53,7 @@ def convert(start_rpynode, end_rpynode, next_getter):
                 edge.start.children.append(edge)
             if edge not in child.parents:
                 child.parents.append(edge)
+        
+        # TODO: Generate screen connections
 
     return graph

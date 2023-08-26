@@ -91,7 +91,7 @@ def simplify(graph, simplify_menus=False):
                 keep = True # Keep root of branches
             if isinstance(node.origin, renpy.ast.Python) and any(re.match(pattern, node.origin.code.source) for pattern in PYTHON_IGNORE):
                 keep = False # System command or unwanted assignation # TODO
-            if isinstance(node.origin, renpy.ast.UserStatement) and node.origin.get_name() in ("show screen", "call screen"):
+            if isinstance(node.origin, renpy.ast.UserStatement) and node.origin.get_name() in ("show screen", "hide screen", "call screen"):
                 keep = True # Screen call
             if not node.parents and not node.children:
                 keep = False # Single node with no connections
