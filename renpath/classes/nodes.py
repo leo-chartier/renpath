@@ -1,12 +1,12 @@
+from renpath import renpy
 from .node import Node
 from ..utility import lookup_or_none
-from ..screens import Screen
+from ..screens import Screen, get_screen
 from ..typing import Dict, Iterator, List, Optional
 
 def __mock_imports(): # type: ignore
     # Mock imports for the linter
-    global renpy, Edge, Graph, NextGetter
-    from renpath import renpy
+    global Edge, Graph, NextGetter
     from edge import Edge
     from graph import Graph
     from ..node_generation import NextGetter
@@ -159,12 +159,16 @@ class UserStatement(Node):
     def generate_children(self, graph, next_getter):
         # type: (Graph, NextGetter) -> List[Edge]
         if self.origin.get_name() == "show screen":
-            screen = Screen() # TODO
-            self.screens[self.origin.parsed[1]["name"]] = screen
+            name = self.origin.parsed[1]["name"]
+            if name not in self.screens:
+                screen = get_screen(name)
+                self.screens[name] = screen
         if self.origin.get_name() == "hide screen":
             name = self.origin.parsed[1]["name"]
             if name in self.screens:
                 self.screens.pop(name)
         if self.origin.get_name() == "call screen":
-            pass # TODO
+            name = self.origin.parsed[1]["name"]
+            screen = get_screen(name)
+            return screen.get_connections(self, graph, next_getter)
         return super(UserStatement, self).generate_children(graph, next_getter)

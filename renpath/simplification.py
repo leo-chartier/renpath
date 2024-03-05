@@ -23,6 +23,11 @@ PYTHON_IGNORE = [
     r"^game_version\s*=.+",
     r"^renpy\.music\..+",
     r"^renpy\.end_replay\(\)",
+    r"^renpy\.pause\(",
+    r"^persistent\.sprite_time",
+    r"^volume\(",
+	r"^set_mode_adv\(\)",
+	r"^set_mode_nvl\(\)",
 ]
 
 
@@ -94,7 +99,7 @@ def simplify(graph, simplify_menus=False):
             if isinstance(node.origin, renpy.ast.UserStatement) and node.origin.get_name() in ("show screen", "hide screen", "call screen"):
                 keep = True # Screen call
             if not node.parents and not node.children:
-                keep = False # Single node with no connections
+                keep = True # Single node with no connections
 
             if keep:
                 continue

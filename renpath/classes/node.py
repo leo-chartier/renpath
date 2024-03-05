@@ -1,15 +1,15 @@
 from renpath import renpy
-from ..screens import Screen
 from ..typing import Dict, Iterator, List, Optional
 
 from .edge import Edge
 
 def __mock_imports(): # type: ignore
     # Mock imports for the linter
-    global Call, Graph, NextGetter
+    global Call, Graph, NextGetter, Screen
     from nodes import Call
     from graph import Graph
     from ..node_generation import NextGetter
+    from ..screens import Screen
 
 
 
@@ -31,6 +31,7 @@ class Node(object):
         next_ = next_getter(self.origin)
         if next_ is None:
             return []
+        # TODO: Add screens' connections
         child = graph.get_node(next_) or _new_node(graph, next_, [], dict(self.screens))
         edge = Edge(self, child)
         edge = graph.get_edge(edge) or edge
@@ -100,7 +101,8 @@ class Node(object):
             code = self.origin.get_code().strip()
         except:
             try:
-                with open(self.origin.filename, "r") as f:
+                fn = self.origin.filename.replace(".rpyc", ".rpy")
+                with open(fn, "r") as f:
                     code = f.readlines()[self.origin.linenumber - 1].strip()
             except:
                 code = self.origin

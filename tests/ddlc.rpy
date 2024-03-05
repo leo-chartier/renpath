@@ -1,4 +1,4 @@
-init -99998 python:
+init -499 python: # Must be at least -499
     from renpath.classes.graph import Graph
     from renpath.conversion import convert
     from renpath.node_generation import _next__minimalist
