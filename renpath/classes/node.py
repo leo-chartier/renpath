@@ -25,17 +25,22 @@ class Node(object):
     def generate_children(self, graph, next_getter):
         # type: (Graph, NextGetter) -> List[Edge]
         # Warning: Does not add the child not the edge to the graph
+        from nodes import INSTANT, UserStatement # Local to prevent circular imports
         from ..node_generation import _new_node # Local to prevent circular imports
         if self.origin is None:
             return []
         next_ = next_getter(self.origin)
         if next_ is None:
             return []
-        # TODO: Add screens' connections
+        edges = []
+        if not isinstance(self, INSTANT):
+            for screen in self.screens.values():
+                edges += screen.get_connections(self, graph, next_getter)
         child = graph.get_node(next_) or _new_node(graph, next_, [], dict(self.screens))
         edge = Edge(self, child)
         edge = graph.get_edge(edge) or edge
-        return [edge]
+        edges.append(edge)
+        return edges
 
     def propagate(self, graph, next_getter):
         # type: (Graph, NextGetter) -> Iterator[Edge]

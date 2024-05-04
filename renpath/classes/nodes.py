@@ -172,3 +172,5 @@ class UserStatement(Node):
             screen = get_screen(name)
             return screen.get_connections(self, graph, next_getter)
         return super(UserStatement, self).generate_children(graph, next_getter)
+
+INSTANT = (Label, Jump, Call, Return, If)
