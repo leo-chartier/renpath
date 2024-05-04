@@ -36,6 +36,9 @@ def parse_actions(keywords):
         id_ = keyword.func.id
         if id_ == "With":
             continue
+        if id_ == "Function":
+            renpy.display.log.write("TODO: Function call in screen") # TODO
+            continue
         if keyword.args:
             actions.append((id_, keyword.args[0].s))
         actions.append((id_, None))
@@ -49,8 +52,8 @@ class Screen:
         renpy.display.log.write("Found screen", self.base_screen.name) # TEMP
         self.base_screen.analyze_screen()
     
-    def get_connections(self, start, graph, next_getter, edges=None, statement=None):
-        # type: (Node, Graph, NextGetter, Union[List[Edge], None], Union[renpy.sl2.slast.SLNode, None]) -> List[Edge]
+    def get_connections(self, start, graph, next_getter, edges=None, statement=None, condition=None):
+        # type: (Node, Graph, NextGetter, Union[List[Edge], None], Union[renpy.sl2.slast.SLNode, None], Union[str, None]) -> List[Edge]
         from .node_generation import _new_node
 
         if edges is None:
@@ -62,7 +65,7 @@ class Screen:
 
         if isinstance(statement, renpy.sl2.slast.SLScreen):
             for child in statement.children:
-                edges = self.get_connections(start, graph, next_getter, edges, child)
+                edges += self.get_connections(start, graph, next_getter, edges, child, condition)
         
         elif isinstance(statement, renpy.sl2.slast.SLDefault):
             renpy.display.log.write("TODO: Screen Default [" + start.origin.filename + "#" + str(start.origin.linenumber) + "]") # TODO
@@ -84,13 +87,18 @@ class Screen:
                     edges.append(edge)
                     # By not adding the edge to the graph right away, the destination node will automatically be scanned
             for child in statement.children:
-                edges = self.get_connections(start, graph, next_getter, edges, child)
+                edges += self.get_connections(start, graph, next_getter, edges, child, condition)
         
         elif isinstance(statement, renpy.sl2.slast.SLFor):
             renpy.display.log.write("TODO: Screen For [" + start.origin.filename + "#" + str(start.origin.linenumber) + "]") # TODO
         
         elif isinstance(statement, renpy.sl2.slast.SLIf):
-            renpy.display.log.write("TODO: Screen If [" + start.origin.filename + "#" + str(start.origin.linenumber) + "]") # TODO
+            for new_condition, block in statement.entries:
+                if condition is not None:
+                    new_condition = "(" + condition + ") and (" + new_condition + ")"
+                for child in block.children:
+                    # TODO: Condition
+                    edges += self.get_connections(start, graph, next_getter, edges, child, new_condition)
         
         elif isinstance(statement, renpy.sl2.slast.SLPython):
             renpy.display.log.write("TODO: Screen Python [" + start.origin.filename + "#" + str(start.origin.linenumber) + "]") # TODO
