@@ -147,6 +147,35 @@ def simplify(graph, simplify_menus=False):
                 _remove_node(node, graph)
                 changed = True
 
+    # Remove unecessary jumps from screens
+    for edge in graph.edges[:]:
+        if edge.choice is None or not edge.choice.startswith("Jump "):
+            continue
+
+        start = edge.start
+        end = edge.end
+
+        no_default = True
+        for edge2 in start.children:
+            if edge2.end == end and (not edge2.condition or edge2.condition == "True") and edge2.choice is None:
+                no_default = False
+                break
+        if no_default:
+            continue
+
+        # Remove the defaults
+        for edge2 in start.children[:]:
+            if edge2.end != end or (edge2.condition and edge2.condition != "True") or edge2.choice is not None:
+                continue
+            start.children.remove(edge2)
+            end.parents.remove(edge2)
+            graph.edges.remove(edge2)
+        
+        # If only screen jump, make it default
+        if len(start.children) == 1:
+            edge.condition = "True"
+            edge.choice = None
+
     pass
 
     # FIXME: Find the bug and remove the line (After some returns, some edges are not simplified correctly and the edge remain)
