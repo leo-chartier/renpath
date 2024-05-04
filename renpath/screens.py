@@ -32,7 +32,7 @@ def parse_actions(keywords):
     
     actions = []
     for keyword in ast_list:
-        renpy.display.log.write(keyword)
+        # renpy.display.log.write(keyword) # TEMP
         id_ = keyword.func.id
         if id_ == "With":
             continue
@@ -49,7 +49,7 @@ class Screen:
         # type: (renpy.display.screen.Screen) -> None
         self.origin = origin
         self.base_screen = self.origin.function # type: renpy.sl2.slast.SLScreen
-        renpy.display.log.write("Found screen", self.base_screen.name) # TEMP
+        # renpy.display.log.write("Found screen: " + self.base_screen.name) # TEMP
         self.base_screen.analyze_screen()
     
     def get_connections(self, start, graph, next_getter, edges=None, statement=None, condition=None):
@@ -71,13 +71,15 @@ class Screen:
             renpy.display.log.write("TODO: Screen Default [" + start.origin.filename + "#" + str(start.origin.linenumber) + "]") # TODO
             
         elif isinstance(statement, renpy.sl2.slast.SLDisplayable):
-            renpy.display.log.write(start.origin.filename + "#" + str(start.origin.linenumber))
+            # renpy.display.log.write("Displayable at: " + start.origin.filename + "#" + str(start.origin.linenumber)) # TEMP
             actions = parse_actions(statement.keyword)
             for type_, value in actions:
+                if value is None:
+                    continue # TEMP: Used because the linter is dumb
                 if type_ == "Jump":
-                    renpy.display.log.write("Added connection", start, value)
+                    # renpy.display.log.write("Added connection " + str(start) + " -> " + value) # TEMP
                     # Copied the code over from Jump.generate_children
-                    target = lookup_or_none(value) # type: renpy.ast.Node # type: ignore
+                    target = lookup_or_none(value) # type: renpy.ast.Node
                     next_ = next_getter(target, False)
                     if next_ is None:
                         return []
@@ -120,7 +122,7 @@ def get_screen(name):
     # type: (str) -> Screen
     if name in __screens:
         return __screens[name]
-    # renpy.display.log.write(renpy.display.screen.screens)
+    # renpy.display.log.write(renpy.display.screen.screens) # TEMP
     raw = renpy.display.screen.screens[(name, None)]
     screen = Screen(raw)
     __screens[name] = screen
